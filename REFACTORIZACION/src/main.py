@@ -118,7 +118,9 @@ def _formatear_consolidado(datos_crudos, map_nombres):
             'Meta_ID': row.get('Meta_ID', ''),
             'COD_CENTRO': base_centro,
             'Numerador_Actual': num,
-            'Denominador_Actual': den
+            'Denominador_Actual': den,
+            'Meta_Fijada': float(row.get('Meta_Fijada', 0) or 0) / 100.0,
+            'Meta_Nacional': float(row.get('Meta_Nacional', 0) or 0) / 100.0
         })
     return consolidado
 
@@ -234,7 +236,9 @@ def _guardar_snapshot(consolidado, periodo_str):
             'Establecimiento_ID': row.get('COD_CENTRO', ''),
             'Meta_ID': _obtener_meta_id_bi(row.get('Meta_ID', '')),
             'Numerador': float(row.get('Numerador_Actual', 0) or 0),
-            'Denominador': float(row.get('Denominador_Actual', 0) or 0)
+            'Denominador': float(row.get('Denominador_Actual', 0) or 0),
+            'Meta_Fijada': float(row.get('Meta_Fijada', 0)),
+            'Meta_Nacional': float(row.get('Meta_Nacional', 0))
         })
 
     if not filas:
