@@ -126,12 +126,14 @@ def calcular_meta_5(agno=None, max_mes=None):
             numeradores[real_code] += val
 
     # Reporte
+    all_centers = set(denominadores.keys()) | set(numeradores.keys())
     reporte = []
     
     total_num = 0
     total_den = 0
     
-    for c, n in numeradores.items():
+    for c in all_centers:
+        n = numeradores.get(c, 0)
         d = denominadores.get(c, 0)
         cump = (n/d*100) if d > 0 else 0
         
