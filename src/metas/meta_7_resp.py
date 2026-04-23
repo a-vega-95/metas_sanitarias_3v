@@ -135,6 +135,28 @@ def calcular_meta_7(agno=None, max_mes=None):
             else:
                 numeradores[code] += val
             
+    # 3. Agrupación Específica Meta 7 (CESCOF -> CESFAM)
+    PARENT_MAP_META_7 = {
+        '121788': '121307', # Las Quilas -> Amanecer
+        '121780': '121347', # El Salar -> Pedro de Valdivia
+        '121782': '121305', # Arquenco -> Villa Alegre
+    }
+    
+    for child, parent in PARENT_MAP_META_7.items():
+        # Transferir denominadores
+        if child in denominadores:
+            if parent not in denominadores:
+                denominadores[parent] = 0
+            denominadores[parent] += denominadores[child]
+            del denominadores[child]
+            
+        # Transferir numeradores
+        if child in numeradores:
+            if parent not in numeradores:
+                numeradores[parent] = 0
+            numeradores[parent] += numeradores[child]
+            del numeradores[child]
+
     # Reporte
     reporte = []
     all_centers = set(denominadores.keys()) | set(numeradores.keys())
