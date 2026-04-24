@@ -135,27 +135,24 @@ def calcular_meta_7(agno=None, max_mes=None):
             else:
                 numeradores[code] += val
             
-    # 3. Agrupación Específica Meta 7 (CESCOF -> CESFAM)
-    PARENT_MAP_META_7 = {
-        '121788': '121307', # Las Quilas -> Amanecer
-        '121780': '121347', # El Salar -> Pedro de Valdivia
-        '121782': '121305', # Arquenco -> Villa Alegre
+    # 3. Agrupación Específica Meta 7 (Agrupación Textual)
+    GROUP_MAP_META_7 = {
+        '121307': '121307-121788', '121788': '121307-121788', # Amanecer + Las Quilas
+        '121347': '121347-121780', '121780': '121347-121780', # Pedro de Valdivia + El Salar
+        '121305': '121305-121782', '121782': '121305-121782', # Villa Alegre + Arquenco
     }
     
-    for child, parent in PARENT_MAP_META_7.items():
-        # Transferir denominadores
-        if child in denominadores:
-            if parent not in denominadores:
-                denominadores[parent] = 0
-            denominadores[parent] += denominadores[child]
-            del denominadores[child]
-            
-        # Transferir numeradores
-        if child in numeradores:
-            if parent not in numeradores:
-                numeradores[parent] = 0
-            numeradores[parent] += numeradores[child]
-            del numeradores[child]
+    new_den = {}
+    for c, v in denominadores.items():
+        gc = GROUP_MAP_META_7.get(c, c)
+        new_den[gc] = new_den.get(gc, 0) + v
+    denominadores = new_den
+    
+    new_num = {}
+    for c, v in numeradores.items():
+        gc = GROUP_MAP_META_7.get(c, c)
+        new_num[gc] = new_num.get(gc, 0) + v
+    numeradores = new_num
 
     # Reporte
     reporte = []

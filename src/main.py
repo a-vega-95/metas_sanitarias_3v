@@ -110,7 +110,12 @@ def _formatear_consolidado(datos_crudos, map_nombres):
         centro = row.get('Centro', '')
         base_centro = centro[:-1] if centro and centro[-1].isalpha() and centro[:-1].isdigit() else centro
         
-        if base_centro not in codigos_autorizados:
+        if base_centro not in codigos_autorizados and not ('-' in base_centro and 'Meta 7' in m_id):
+            continue
+            
+        # Para Meta 7, descartar centros individuales que ya se reportan agrupados
+        # Esto evita que aparezcan filas con 0.0 que confunden el reporte
+        if 'Meta 7' in m_id and base_centro in ['121307', '121788', '121347', '121780', '121305', '121782']:
             continue
             
         try:
@@ -139,6 +144,10 @@ def _formatear_consolidado(datos_crudos, map_nombres):
         nacional = float(params.get('nacional', 0)) / 100.0
         
         for cod in codigos_autorizados:
+            # Para Meta 7, no rellenar con ceros los centros individuales que ya estan en el grupo
+            if 'Meta 7' in m_id and cod in ['121307', '121788', '121347', '121780', '121305', '121782']:
+                continue
+                
             if (m_id, cod) not in consolidado_dict:
                 consolidado_dict[(m_id, cod)] = {
                     'Meta_ID': m_id,
@@ -178,7 +187,9 @@ def _obtener_meta_id_bi(meta_raw):
         '4A': 'M_04A', '4B': 'M_04B', '5': 'M_05', '6': 'M_06',
         '7': 'M_07', '8': 'M_08'
     }
-    return mapping.get(m, f"M_{m.zfill(2)}" if m.isdigit() else m)def exportar_dimensiones_bi(bi_dir, map_nombres=None):
+    return mapping.get(m, f"M_{m.zfill(2)}" if m.isdigit() else m)
+
+def exportar_dimensiones_bi(bi_dir, map_nombres=None):
     """Genera DIM_Metas, DIM_Establecimientos y DIM_Calendario (bloqueado a 2026)."""
     from config import PARAMETROS_ANUALES, AGNO_ACTUAL
 
@@ -215,12 +226,37 @@ def _obtener_meta_id_bi(meta_raw):
             for row in reader:
                 cod = row['COD_CENTRO'].strip()
                 if cod.endswith('A'): cod = cod[:-1]
+                nombre = row['NOMBRE'].strip()
+                if cod == '121352':
+                    nombre = 'M. VALECH + PSRs (Collimallin y Conoco)'
+                    
                 filas_dim_est.append({
                     'Establecimiento_ID': cod,
-                    'Nombre_Centro': row['NOMBRE'].strip(),
+                    'Nombre_Centro': nombre,
                     'Tipo_Centro': row['TIPO_CENTRO'].strip(),
                     'Comuna': 'Temuco'
                 })
+    
+    # Inyectar centros agrupados para Meta 7
+    filas_dim_est.append({
+        'Establecimiento_ID': '121307-121788',
+        'Nombre_Centro': 'Amanecer + Las Quilas',
+        'Tipo_Centro': 'AGRUPACION',
+        'Comuna': 'Temuco'
+    })
+    filas_dim_est.append({
+        'Establecimiento_ID': '121347-121780',
+        'Nombre_Centro': 'Pedro de Valdivia + El Salar',
+        'Tipo_Centro': 'AGRUPACION',
+        'Comuna': 'Temuco'
+    })
+    filas_dim_est.append({
+        'Establecimiento_ID': '121305-121782',
+        'Nombre_Centro': 'Villa Alegre + Arquenco',
+        'Tipo_Centro': 'AGRUPACION',
+        'Comuna': 'Temuco'
+    })
+
     visto = set()
     uniq = []
     for f in filas_dim_est:

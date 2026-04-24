@@ -66,6 +66,7 @@ def load_center_names():
                         mapping_names[code[:-1]] = name
         except Exception as e:
             print(f"Error cargando nombres de centros: {e}")
+            
     return mapping_names
 
 # ── Logger de Cuarentena ─────────────────────────────────────────────────────
